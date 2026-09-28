@@ -19,6 +19,8 @@ const config: ProjectConfig = {
     registration: true,
     doubleOptInRegistration: false,
     productReviews: true,
+    productTaxInfo: true,
+    productDeliveryInfo: true,
     contactForm: true,
     newsletter: false,
     promotionCodes: true,

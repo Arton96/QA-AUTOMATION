@@ -10,8 +10,12 @@ test.describe('Product detail page', () => {
     expect(await product.priceValue()).toBeGreaterThan(0);
     await expect(product.buyButton).toBeEnabled();
     await expect(product.page.locator(s.gallery).first()).toBeVisible();
-    await expect(product.page.locator(s.tax).first()).toBeVisible();
-    await expect(product.page.locator(s.delivery).first()).toBeVisible();
+if (cfg.features.productTaxInfo) {
+  await expect(product.page.locator(s.tax).first()).toBeVisible();
+}    
+if (cfg.features.productDeliveryInfo) {
+  await expect(product.page.locator(s.delivery).first()).toBeVisible();
+}
     await expect(product.page.locator(s.description).first()).toBeAttached();
   });
 
@@ -25,7 +29,10 @@ test.describe('Product detail page', () => {
     const v = cfg.testData.variantProduct;
     await product.open(v);
     await expect(product.configuratorGroups).toHaveCount(v.optionGroups.length);
-    const { before, after } = await product.switchVariant(v.optionGroups.length - 1);
+    
+const switchGroupIndex = v.switchGroupIndex ?? v.optionGroups.length - 1;
+const { before, after } = await product.switchVariant(switchGroupIndex);
+
     expect(after).not.toEqual(before);
     await expect(page).toHaveURL(new RegExp(after.replace(/[.]/g, '\\.')));
   });

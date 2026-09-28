@@ -14,6 +14,8 @@ export interface FeatureFlags {
   /** Registration requires e-mail confirmation (double opt-in). */
   doubleOptInRegistration: boolean;
   productReviews: boolean;
+  productTaxInfo: boolean;
+  productDeliveryInfo: boolean;
   contactForm: boolean;
   newsletter: boolean;
   promotionCodes: boolean;
@@ -88,7 +90,10 @@ export interface ProjectConfig {
     /** A simple (non-variant) product that can be bought. */
     simpleProduct: ProductRef;
     /** A product with variants (configurator). */
-    variantProduct: ProductRef & { optionGroups: string[] };
+    variantProduct: ProductRef & {
+  optionGroups: string[];
+  switchGroupIndex?: number;
+};
     /** Search term that returns results. */
     searchTerm: string;
     /** Minimum number of hits expected for searchTerm. */

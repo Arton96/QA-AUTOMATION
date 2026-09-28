@@ -20,6 +20,8 @@ const config: ProjectConfig = {
     registration: true,
     doubleOptInRegistration: false,
     productReviews: true,
+    productTaxInfo: true,
+    productDeliveryInfo: true,
     contactForm: true,
     newsletter: false,
     promotionCodes: true,
@@ -57,6 +59,10 @@ const config: ProjectConfig = {
       productNumber: 'SW10001.1',
       name: 'TODO',
       optionGroups: ['Size'],
+
+      // Index of the configurator group that has multiple switchable options.
+  // 0 = first group, 1 = second group, etc.
+  switchGroupIndex: 0,
     },
     searchTerm: 'TODO',
     searchMinResults: 1,

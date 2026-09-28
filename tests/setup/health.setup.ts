@@ -4,10 +4,20 @@ import { test, expect } from '../../src/fixtures';
  * Runs once before all tests. Fails fast (with a clear message) when the
  * shop is down, behind unexpected auth, or in maintenance mode.
  */
-test('storefront is reachable', async ({ request, cfg }) => {
-  const res = await request.get('/');
-  expect(res.status(), `GET ${cfg.baseURL}/ returned ${res.status()} — shop down, maintenance mode or basic auth missing?`).toBe(200);
-  expect(await res.text()).toContain('is-ctl-');
+test('storefront is reachable', async ({ page, cfg }) => {
+  const response = await page.goto('/');
+
+  expect(
+    response,
+    `GET ${cfg.baseURL}/ returned no response`
+  ).not.toBeNull();
+
+  expect(
+    response!.status(),
+    `GET ${cfg.baseURL}/ returned ${response!.status()} — shop down, maintenance mode or basic auth missing?`
+  ).toBe(200);
+
+  await expect(page.locator('body')).toHaveClass(/is-ctl-/);
 });
 
 test('API access for test data setup', async ({ cfg, adminApi, storeApi }) => {
