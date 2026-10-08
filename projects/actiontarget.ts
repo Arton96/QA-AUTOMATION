@@ -10,7 +10,9 @@ const config: ProjectConfig = {
   currencySymbol: '$',
 
   features: {
-    wishlist: false, // TODO verify
+    wishlist: true, // verified: data-add-to-wishlist buttons, .header-wishlist, /wishlist (is-ctl-wishlist)
+    wishlistForCustomers: false, // logged-in customers get ActionTarget "My Lists" (product-lists) instead
+    productListsForCustomers: true, // verified: PDP "Save" → modal → /account/product-lists
     guestCheckout: true,
     registration: true,
     doubleOptInRegistration: false, // TODO verify
@@ -18,9 +20,10 @@ const config: ProjectConfig = {
     productTaxInfo: false,
     productDeliveryInfo: false,
     contactForm: true, // TODO verify
-    newsletter: false, // TODO verify
+    newsletter: true, // verified: footer form[action="/form/newsletter"]
     promotionCodes: true,
-    cookieBanner: true,
+    cartAutoOpensAfterAdd: false,
+    cookieBanner: false,
     languageSwitch: false, // TODO verify
     currencySwitch: false, // TODO verify
     mobileNavigation: true,
@@ -43,15 +46,17 @@ const config: ProjectConfig = {
 
     search: '/search',
     wishlist: '/wishlist',
+    productLists: '/account/product-lists',
 
-    contactPage: null,
+    // Footer "Contact Us" (/contact-us) has no form; the Shopware contact form lives on this CMS page
+    contactPage: '/page/cms/019bea8fc56971338b6124a8f036af66',
   },
 
   testData: {
     mainCategories: [
-      'DEMO CATEGORY',
       'SHOOTING TARGETS',
-      'TARGET BACKERS AND HANGERS',
+      'TARGET BACKERS & HANGERS',
+      'TARGET STANDS & SYSTEMS',
       'SHOOTING RANGE SUPPLIES & EQUIPMENT',
     ],
 
@@ -75,7 +80,7 @@ const config: ProjectConfig = {
 
     searchMinResults: 1,
 
-    searchNoResultTerm: 'zzqx-no-such-product-4711',
+    searchNoResultTerm: 'zzqxvwjkqpxz',
 
     expectedFilterTypes: [
       'manufacturer',
@@ -102,6 +107,7 @@ const config: ProjectConfig = {
         street: 'test123',
         zipcode: '11000',
         city: 'Test',
+        phone: '+590 690 00 00 00',
         countryIso: 'GP',
         countryLabel: 'Guadeloupe',
       },
@@ -116,7 +122,7 @@ const config: ProjectConfig = {
 
     shippingMethod: 'Will Contact',
 
-    promotionCode: null,
+    promotionCode: 'E2E-AUTOMATION-10',
   },
 
   redirects: [
@@ -148,6 +154,37 @@ const config: ProjectConfig = {
     price: '[data-at-price-current]',
     buyButton: 'button[aria-label="Add to shopping cart"]',
    },
+   cart: {
+    summaryTotal: 'dd.checkout-aside-summary-total-custom',
+  },
+  page: {
+    alertDanger: '.at-alert--danger',
+    alertSuccess: '.at-alert--success',
+  },
+  search: {
+    emptyAlert: '.cms-listing-row .at-alert--warning',
+  },
+  wishlist: {
+    // .product-wishlist-remove is a zero-size wrapper here; click the button inside it
+    remove: '.product-wishlist-btn-remove',
+  },
+  productLists: {
+    saveButton: '.pdp-wishlist-icon button.product-lists-trigger',
+    modal: '.modal.show .at-product-list-modal',
+    newListName: 'input[name="newListName"]',
+    submit: 'button.at-product-list-form-submit',
+    success: '.flashbags .at-alert--success .at-alert__message',
+    overview: '.at-product-lists-panel',
+    listCard: 'a.card[href^="/account/product-lists/"]',
+    listCardName: 'h3',
+    detail: '.at-product-lists-detail',
+    detailTitle: 'h2.card-title',
+    item: 'article.at-product-list-item',
+    // name link is rendered twice (responsive) — use the desktop one
+    itemName: '.at-product-list-item-content.d-md-block a.at-product-list-item-name',
+    deleteTrigger: '[data-bs-target^="#at-product-list-delete-"]',
+    deleteConfirm: '.modal.show button[type="submit"].btn-outline-danger',
+  },
 },
 };
 

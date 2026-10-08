@@ -4,7 +4,7 @@ import { buildCustomer } from '../../src/data/customer';
 test.describe('Customer registration', () => {
   test.beforeEach(async ({ cfg, auth }) => {
     skipUnless(cfg.features.registration, 'registration');
-    await auth.open();
+    await auth.openRegistration();
   });
 
   test('new customer can register', { tag: ['@smoke', '@mobile'] }, async ({ page, cfg, auth, adminApi, requireWriteAccess }) => {

@@ -19,6 +19,11 @@ export class AuthPage extends BasePage {
     await expect(this.loginForm).toBeVisible();
   }
 
+  async openRegistration(): Promise<void> {
+    await this.goto(this.cfg.routes.register);
+    await expect(this.registerForm).toBeVisible();
+  }
+
   // ---------------- login ----------------
   async login(email: string, password: string): Promise<void> {
     // On /checkout/register the login form is collapsed
@@ -64,6 +69,8 @@ export class AuthPage extends BasePage {
     await form.locator(r.street).fill(c.address.street);
     await form.locator(r.zipcode).fill(c.address.zipcode);
     await form.locator(r.city).fill(c.address.city);
+    const phone = form.locator(r.phone);
+    if (c.address.phone && (await phone.isVisible())) await phone.fill(c.address.phone);
     await this.selectCountry(form.locator(r.country).first(), c.address.countryLabel);
 
     const dp = form.locator(r.dataProtection);
@@ -77,7 +84,13 @@ export class AuthPage extends BasePage {
       const rx = new RegExp(src, 'i');
       return opts.filter((o) => rx.test(o.textContent ?? '')).map((o) => (o as HTMLOptionElement).value);
     }, re.source);
-    if (values[0]) await select.selectOption(values[0]);
+    if (!values[0]) return;
+    // Shopware's country-state plugin reloads the state select via XHR on change; submitting
+    // before it finishes leaves a stale required state field that blocks the form.
+    await Promise.all([
+      this.page.waitForResponse(/\/country\/country-state-data/, { timeout: 10_000 }).catch(() => null),
+      select.selectOption(values[0]),
+    ]);
   }
 
   async submitRegistration(): Promise<void> {

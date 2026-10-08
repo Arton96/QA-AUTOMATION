@@ -141,7 +141,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       await CookieBanner.preAccept(ctx, cfg.baseURL);
       const p = await ctx.newPage();
       const auth = new AuthPage(p, cfg);
-      await auth.open();
+      await auth.openRegistration();
       await auth.register(customer);
       await expect(p).not.toHaveURL(/\/account\/login/);
       await ctx.close();

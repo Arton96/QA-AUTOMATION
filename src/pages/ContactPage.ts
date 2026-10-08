@@ -45,6 +45,9 @@ export class ContactPage extends BasePage {
     for (const [sel, val] of pairs) {
       if (val !== undefined && (await f.locator(sel).count())) await f.locator(sel).first().fill(val);
     }
+    // Optional "accept data protection" checkbox (required when enabled in the shop config)
+    const dp = f.locator(c.dataProtection).first();
+    if (await dp.count()) await dp.check();
   }
 
   async submit(): Promise<void> {

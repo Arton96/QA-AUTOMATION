@@ -15,6 +15,8 @@ const config: ProjectConfig = {
 
   features: {
     wishlist: false, // not enabled in the demo sales channel
+    wishlistForCustomers: false, // not verified for the demo — enable once confirmed
+    productListsForCustomers: false, // no product-lists feature in core Shopware
     guestCheckout: true,
     registration: true,
     doubleOptInRegistration: false,
@@ -24,6 +26,7 @@ const config: ProjectConfig = {
     contactForm: true,
     newsletter: false,
     promotionCodes: true,
+    cartAutoOpensAfterAdd: true,
     cookieBanner: true,
     languageSwitch: false,
     currencySwitch: false,

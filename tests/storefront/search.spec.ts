@@ -6,9 +6,12 @@ test.describe('Product search', () => {
     await page.goto(cfg.routes.home);
     await header.search(searchTerm);
     await expect(page.locator('body')).toHaveClass(/is-ctl-search/);
-    await expect(page).toHaveURL(new RegExp(`search=${encodeURIComponent(searchTerm)}`));
+    // Compare decoded params: shops may encode spaces as %20 or +
+    const url = new URL(page.url());
+    expect(url.pathname).toBe(cfg.routes.search);
+    expect(url.searchParams.get('search')).toBe(searchTerm);
     expect(await listing.productBoxes.count()).toBeGreaterThanOrEqual(searchMinResults);
-    await expect(page.locator(cfg.selectors.search.headline)).toContainText(searchTerm);
+    await expect(page.locator(cfg.selectors.search.headline)).toContainText(searchTerm, { ignoreCase: true });
   });
 
   test('results contain the search term', async ({ page, cfg, listing }) => {

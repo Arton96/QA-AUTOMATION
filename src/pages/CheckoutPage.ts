@@ -20,13 +20,24 @@ export class CheckoutPage extends BasePage {
   }
 
   async selectPaymentMethod(label: string): Promise<void> {
-    const lbl = this.$(this.s.checkout.paymentMethodLabel).filter({ hasText: new RegExp(escapeRegExp(label), 'i') }).first();
-    await Promise.all([this.page.waitForLoadState('domcontentloaded'), lbl.click()]);
+    await this.selectMethod(this.$(this.s.checkout.paymentMethodLabel).filter({ hasText: new RegExp(escapeRegExp(label), 'i') }).first());
   }
 
   async selectShippingMethod(label: string): Promise<void> {
-    const lbl = this.$(this.s.checkout.shippingMethodLabel).filter({ hasText: new RegExp(escapeRegExp(label), 'i') }).first();
-    await Promise.all([this.page.waitForLoadState('domcontentloaded'), lbl.click()]);
+    await this.selectMethod(this.$(this.s.checkout.shippingMethodLabel).filter({ hasText: new RegExp(escapeRegExp(label), 'i') }).first());
+  }
+
+  /**
+   * Changing payment/shipping submits a form and reloads the confirm page. Wait for the *new*
+   * document (waitForLoadState would resolve on the already-loaded old one); skip if already selected.
+   */
+  private async selectMethod(lbl: Locator): Promise<void> {
+    const checked = await lbl.evaluate((l) => {
+      const input = ((l as HTMLLabelElement).htmlFor && document.getElementById((l as HTMLLabelElement).htmlFor)) || l.parentElement?.querySelector('input');
+      return !!(input as HTMLInputElement | null)?.checked;
+    });
+    if (checked) return;
+    await Promise.all([this.page.waitForEvent('domcontentloaded'), lbl.click()]);
   }
 
   async acceptTerms(): Promise<void> {
@@ -48,7 +59,8 @@ export class CheckoutPage extends BasePage {
     if (paymentMethod) await this.selectPaymentMethod(paymentMethod);
     await this.acceptTerms();
     await Promise.all([
-      this.page.waitForURL(new RegExp(escapeRegExp(this.cfg.routes.checkoutFinish)), { timeout: 45_000 }),
+      // domcontentloaded: the finish page's full "load" can hang on slow third-party assets
+      this.page.waitForURL(new RegExp(escapeRegExp(this.cfg.routes.checkoutFinish)), { timeout: 45_000, waitUntil: 'domcontentloaded' }),
       this.submitButton.click(),
     ]);
     const nr = this.$(this.s.checkout.finishOrderNumber).first();

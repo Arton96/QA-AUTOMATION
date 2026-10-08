@@ -9,6 +9,10 @@ export type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartia
  */
 export interface FeatureFlags {
   wishlist: boolean;
+  /** Logged-in customers use the standard Shopware wishlist (false if the theme replaces it, e.g. with own lists). */
+  wishlistForCustomers: boolean;
+  /** Logged-in customers save products to named lists (plugin/theme "My Lists", e.g. /account/product-lists). */
+  productListsForCustomers: boolean;
   guestCheckout: boolean;
   registration: boolean;
   /** Registration requires e-mail confirmation (double opt-in). */
@@ -20,6 +24,7 @@ export interface FeatureFlags {
   newsletter: boolean;
   promotionCodes: boolean;
   /** Cookie consent banner is shown to first-time visitors. */
+  cartAutoOpensAfterAdd: boolean;
   cookieBanner: boolean;
   languageSwitch: boolean;
   currencySwitch: boolean;
@@ -46,6 +51,8 @@ export interface CustomerAddress {
   street: string;
   zipcode: string;
   city: string;
+  /** Optional phone number; some storefronts require it for registration. */
+  phone?: string;
   /** ISO 3166 alpha-2, resolved to a countryId via Store API / UI */
   countryIso: string;
   /** Visible country name in the storefront select (used by UI flows). */
@@ -78,6 +85,8 @@ export interface ProjectConfig {
     checkoutFinish: string;
     search: string;
     wishlist: string;
+    /** Overview of the customer's product lists (only with features.productListsForCustomers) */
+    productLists?: string;
     /** Path of a CMS page containing the contact form (null = discover via footer). */
     contactPage: string | null;
   };

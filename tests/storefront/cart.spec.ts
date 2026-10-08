@@ -7,6 +7,10 @@ test.describe('Cart', () => {
     const price = await product.priceValue();
     await product.addToCart();
 
+    if (!cfg.features.cartAutoOpensAfterAdd) {
+  await header.openCart();
+}
+
     await offcanvasCart.expectOpen();
     await expect(offcanvasCart.lineItem(p.name)).toBeVisible();
 
@@ -15,11 +19,16 @@ test.describe('Cart', () => {
     await expect.poll(() => header.cartTotal()).toBeCloseTo(price, 2);
   });
 
-  test('add product from listing', async ({ listing, offcanvasCart, cfg }) => {
+  test('add product from listing', async ({ listing, offcanvasCart, header, cfg }) => {
     await listing.open(cfg.testData.listingCategoryPath);
     const idx = await listing.firstBuyableIndex();
     test.skip(idx < 0, 'No directly buyable product on listing');
     const name = await listing.addToCartFromListing(idx);
+
+    if (!cfg.features.cartAutoOpensAfterAdd) {
+  await header.openCart();
+}
+
     await offcanvasCart.expectOpen();
     await expect(offcanvasCart.lineItem(name)).toBeVisible();
   });
@@ -32,10 +41,15 @@ test.describe('Cart', () => {
     expect(await cart.quantityOf(p.name)).toBe(3);
   });
 
-  test('update quantity in off-canvas cart', async ({ product, offcanvasCart, cfg }) => {
+  test('update quantity in off-canvas cart', async ({ product, offcanvasCart, header, cfg }) => {
     const p = cfg.testData.simpleProduct;
     await product.open(p);
     await product.addToCart();
+
+    if (!cfg.features.cartAutoOpensAfterAdd) {
+  await header.openCart();
+}
+
     await offcanvasCart.increaseQuantity(p.name);
     await expect(offcanvasCart.lineItem(p.name).locator(cfg.selectors.offcanvasCart.quantityInput)).toHaveValue('2');
   });
@@ -59,10 +73,14 @@ test.describe('Cart', () => {
     await cart.expectEmpty();
   });
 
-  test('remove product from off-canvas cart', async ({ product, offcanvasCart, cfg }) => {
+  test('remove product from off-canvas cart', async ({ product, offcanvasCart, header, cfg }) => {
     const p = cfg.testData.simpleProduct;
     await product.open(p);
     await product.addToCart();
+
+    if (!cfg.features.cartAutoOpensAfterAdd) {
+  await header.openCart();
+}
     await offcanvasCart.remove(p.name);
     await expect(offcanvasCart.lineItems).toHaveCount(0);
   });
