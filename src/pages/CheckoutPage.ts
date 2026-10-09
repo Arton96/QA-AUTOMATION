@@ -32,12 +32,17 @@ export class CheckoutPage extends BasePage {
    * document (waitForLoadState would resolve on the already-loaded old one); skip if already selected.
    */
   private async selectMethod(lbl: Locator): Promise<void> {
-    const checked = await lbl.evaluate((l) => {
+    // Shopware's FormAutoSubmit binds after DOMContentLoaded; clicking earlier only toggles the
+    // radio client-side and never POSTs /checkout/configure (order then uses the default method).
+    await this.page.waitForLoadState('load');
+    const { checked, id } = await lbl.evaluate((l) => {
       const input = ((l as HTMLLabelElement).htmlFor && document.getElementById((l as HTMLLabelElement).htmlFor)) || l.parentElement?.querySelector('input');
-      return !!(input as HTMLInputElement | null)?.checked;
+      return { checked: !!(input as HTMLInputElement | null)?.checked, id: input?.id ?? '' };
     });
     if (checked) return;
     await Promise.all([this.page.waitForEvent('domcontentloaded'), lbl.click()]);
+    // Re-resolved on the reloaded document → verifies the selection was persisted server-side.
+    if (id) await expect(this.page.locator(`[id="${id}"]`)).toBeChecked();
   }
 
   async acceptTerms(): Promise<void> {

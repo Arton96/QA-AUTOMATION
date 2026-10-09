@@ -60,7 +60,7 @@ const config: ProjectConfig = {
       'SHOOTING RANGE SUPPLIES & EQUIPMENT',
     ],
 
-    listingCategoryPath: '/paper-and-cardboard-targets',
+      listingCategoryPath: '/plastic-and-rubber-targets',
 
     simpleProduct: {
       path: '/tactical-grit-gsr-x-out-hand-wash-3.3-oz-tube-0022-GSR-X-OUT-TB',
