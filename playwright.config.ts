@@ -4,6 +4,10 @@ import { loadConfig } from './src/config/loader';
 const cfg = loadConfig();
 const isCI = !!process.env.CI;
 
+// Order generation places real orders with card data: never part of a normal run, only via
+// playwright.data-generation.config.ts (npm run generate:orders).
+const regressionIgnore = [/setup\/.*/, /data-generation\/.*/];
+
 const extraBrowsers = (process.env.EXTRA_BROWSERS ?? '')
   .split(',')
   .map((b) => b.trim())
@@ -22,7 +26,7 @@ const desktopProjects: Project[] = [
 ].map((p) => ({
   ...p,
   testDir: './tests',
-  testIgnore: /setup\/.*/,
+  testIgnore: regressionIgnore,
   grepInvert: /@mobile-only/,
   dependencies: ['setup'],
 }));
@@ -67,7 +71,7 @@ export default defineConfig({
     {
       name: 'mobile',
       testDir: './tests',
-      testIgnore: /setup\/.*/,
+      testIgnore: regressionIgnore,
       grep: /@mobile/,
       use: { ...devices['Pixel 7'] },
       dependencies: ['setup'],

@@ -67,6 +67,8 @@ export class ListingPage extends BasePage {
     if (await panel.isVisible()) return panel;
     await this.$(this.s.listing.filterPanelToggle).locator('visible=true').first().click();
     await expect(panel).toBeVisible();
+    // mobile: the panel slides in as an off-canvas — wait for the animation to finish
+    await expect(panel).toBeInViewport({ ratio: 1 });
     return panel;
   }
 

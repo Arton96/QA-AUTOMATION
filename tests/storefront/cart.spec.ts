@@ -1,18 +1,23 @@
 import { test, expect } from '../../src/fixtures';
 
 test.describe('Cart', () => {
-  test('add product from detail page opens off-canvas cart', { tag: ['@smoke', '@mobile'] }, async ({ product, offcanvasCart, header, cfg }) => {
+  test('add product from detail page opens off-canvas cart', { tag: ['@smoke', '@mobile'] }, async ({ product, offcanvasCart, cart, header, cfg, isMobile }) => {
     const p = cfg.testData.simpleProduct;
     await product.open(p);
     const price = await product.priceValue();
     await product.addToCart();
 
-    if (!cfg.features.cartAutoOpensAfterAdd) {
-  await header.openCart();
-}
-
-    await offcanvasCart.expectOpen();
-    await expect(offcanvasCart.lineItem(p.name)).toBeVisible();
+    if (isMobile && !cfg.features.cartAutoOpensAfterAdd) {
+      // mobile header cart links straight to the cart page, there is no off-canvas
+      await Promise.all([product.page.waitForURL(new RegExp(cfg.routes.cart)), header.cartButton.click()]);
+      await expect(cart.lineItem(p.name)).toBeVisible();
+    } else {
+      if (!cfg.features.cartAutoOpensAfterAdd) {
+        await header.openCart();
+      }
+      await offcanvasCart.expectOpen();
+      await expect(offcanvasCart.lineItem(p.name)).toBeVisible();
+    }
 
     // header widget refreshes asynchronously / on next page load → verify after reload
     await product.page.reload();

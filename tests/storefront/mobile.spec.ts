@@ -9,7 +9,8 @@ test.describe('Mobile / responsive', { tag: '@mobile-only' }, () => {
     skipUnless(cfg.features.mobileNavigation, 'mobileNavigation');
     await page.goto(cfg.routes.home);
     const oc = await navigation.openMobileMenu();
-    const link = oc.locator('a').filter({ hasText: new RegExp(cfg.testData.mainCategories[1] ?? cfg.testData.mainCategories[0], 'i') }).first();
+    // categories with children are rendered as <button> (expand), leaf categories as <a>
+    const link = oc.locator('a, button').filter({ hasText: new RegExp(cfg.testData.mainCategories[1] ?? cfg.testData.mainCategories[0], 'i') }).first();
     await expect(link).toBeVisible();
   });
 

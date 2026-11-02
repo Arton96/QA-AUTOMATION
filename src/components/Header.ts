@@ -7,7 +7,8 @@ export class Header extends BasePage {
     return this.$(this.s.header.logo);
   }
   get searchInput(): Locator {
-    return this.$(this.s.header.searchInput).first();
+    // the theme renders more than one search input; only one is visible per viewport
+    return this.$(this.s.header.searchInput).locator('visible=true').first();
   }
   get cartButton(): Locator {
     return this.$(this.s.header.cart).first();

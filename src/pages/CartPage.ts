@@ -59,6 +59,16 @@ export class CartPage extends BasePage {
     await this.page.waitForLoadState('domcontentloaded');
   }
 
+  /** Removes every line item, e.g. cleanup for logged-in customers whose cart persists. */
+  async clear(): Promise<void> {
+    await this.open();
+    for (let i = 0; i < 50 && (await this.lineItems.count()) > 0; i++) {
+      await this.waitForXhr('/checkout/line-item/delete', () => this.lineItems.first().locator(this.s.cart.remove).click());
+      await this.page.waitForLoadState('domcontentloaded');
+    }
+    await this.expectEmpty();
+  }
+
   async applyPromotion(code: string): Promise<void> {
     await this.$(this.s.cart.promotionInput).first().fill(code);
     await this.waitForXhr('/checkout/promotion/add', () => this.$(this.s.cart.promotionSubmit).first().click());
