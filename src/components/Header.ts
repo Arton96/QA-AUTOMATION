@@ -7,7 +7,8 @@ export class Header extends BasePage {
     return this.$(this.s.header.logo);
   }
   get searchInput(): Locator {
-    return this.$(this.s.header.searchInput).first();
+    // the theme renders more than one search input; only one is visible per viewport
+    return this.$(this.s.header.searchInput).locator('visible=true').first();
   }
   get cartButton(): Locator {
     return this.$(this.s.header.cart).first();
@@ -30,7 +31,7 @@ export class Header extends BasePage {
     await this.ensureSearchVisible();
     await this.searchInput.fill(term);
     await Promise.all([
-      this.page.waitForURL(/\/search\?/),
+      this.page.waitForURL(/\/search\?/, { waitUntil: 'domcontentloaded' }),
       this.searchInput.press('Enter'),
     ]);
   }
@@ -46,11 +47,15 @@ export class Header extends BasePage {
   }
 
   async cartTotal(): Promise<number> {
-    // textContent: the total is visually hidden on mobile (innerText would be empty)
-    const text = (await this.$(this.s.header.cartTotal).first().textContent()) ?? '';
-    const value = parsePrice(text);
-    return Number.isNaN(value) ? 0 : value;
-  }
+  // ActionTarget may render e.g. "1 item $16.99" in the same element.
+  const text = (await this.$(this.s.header.cartTotal).first().textContent()) ?? '';
+
+  const amounts = text.match(/\d[\d.,]*/g);
+  if (!amounts?.length) return 0;
+
+  const value = parsePrice(amounts[amounts.length - 1]);
+  return Number.isNaN(value) ? 0 : value;
+}
 
   async cartBadgeCount(): Promise<number> {
     const badge = this.$(this.s.header.cartBadge).first();

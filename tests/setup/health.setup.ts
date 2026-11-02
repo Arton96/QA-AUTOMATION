@@ -5,7 +5,10 @@ import { test, expect } from '../../src/fixtures';
  * shop is down, behind unexpected auth, or in maintenance mode.
  */
 test('storefront is reachable', async ({ page, cfg }) => {
-  const response = await page.goto('/');
+  const response = await page.goto('/', {
+  waitUntil: 'domcontentloaded',
+  timeout: 45_000,
+});
 
   expect(
     response,

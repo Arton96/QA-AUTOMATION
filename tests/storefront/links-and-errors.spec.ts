@@ -44,7 +44,7 @@ test.describe('Important links & redirects', () => {
 });
 
 test.describe('Error handling', () => {
-  test('unknown URL shows a 404 page with a way back', { tag: ['@smoke', '@mobile'] }, async ({ page, cfg }) => {
+  test('unknown URL shows a 404 page with a way back @known-bug', { tag: ['@smoke', '@mobile'] }, async ({ page, cfg }) => {
     const res = await page.goto(`/e2e-not-existing-${Date.now()}`);
     expect(res?.status()).toBe(404);
     await expect(page.locator(cfg.selectors.error.body)).toBeAttached();

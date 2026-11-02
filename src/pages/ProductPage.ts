@@ -69,4 +69,10 @@ export class ProductPage extends BasePage {
   get wishlistButton(): Locator {
     return this.$(this.s.product.wishlistButton).first();
   }
+
+  /** Clicks the wishlist button and waits until Shopware marks it added (logged-in: after the add request). */
+  async addToWishlist(): Promise<void> {
+    await this.wishlistButton.click();
+    await expect(this.wishlistButton).toHaveClass(/product-wishlist-added/);
+  }
 }

@@ -9,6 +9,10 @@ export type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartia
  */
 export interface FeatureFlags {
   wishlist: boolean;
+  /** Logged-in customers use the standard Shopware wishlist (false if the theme replaces it, e.g. with own lists). */
+  wishlistForCustomers: boolean;
+  /** Logged-in customers save products to named lists (plugin/theme "My Lists", e.g. /account/product-lists). */
+  productListsForCustomers: boolean;
   guestCheckout: boolean;
   registration: boolean;
   /** Registration requires e-mail confirmation (double opt-in). */
@@ -20,6 +24,7 @@ export interface FeatureFlags {
   newsletter: boolean;
   promotionCodes: boolean;
   /** Cookie consent banner is shown to first-time visitors. */
+  cartAutoOpensAfterAdd: boolean;
   cookieBanner: boolean;
   languageSwitch: boolean;
   currencySwitch: boolean;
@@ -46,10 +51,14 @@ export interface CustomerAddress {
   street: string;
   zipcode: string;
   city: string;
+  /** Optional phone number; some storefronts require it for registration. */
+  phone?: string;
   /** ISO 3166 alpha-2, resolved to a countryId via Store API / UI */
   countryIso: string;
   /** Visible country name in the storefront select (used by UI flows). */
   countryLabel?: string;
+  /** Visible state name in the storefront select (UI flows; only for countries with states). */
+  stateLabel?: string;
 }
 
 export interface ProjectConfig {
@@ -78,6 +87,8 @@ export interface ProjectConfig {
     checkoutFinish: string;
     search: string;
     wishlist: string;
+    /** Overview of the customer's product lists (only with features.productListsForCustomers) */
+    productLists?: string;
     /** Path of a CMS page containing the contact form (null = discover via footer). */
     contactPage: string | null;
   };
@@ -120,6 +131,41 @@ export interface ProjectConfig {
     paymentMethod: string | null;
     shippingMethod: string | null;
     promotionCode: string | null;
+    /** Read-only checkout edge-case checks (tests/client); omit to skip them. */
+    checkoutEdgeCases?: {
+      product: ProductRef & { quantity: number };
+      /** Baseline guest address that must offer the standard methods. */
+      baselineAddress: CustomerAddress;
+      baselineShippingMethod: string;
+      baselinePaymentMethod: string;
+      /** Every visible "UPS …" method must be one of these. */
+      allowedUpsMethods: string[];
+      /** Non-US address: no UPS, only the manual shipping method. */
+      canadaAddress: CustomerAddress;
+      willContactShippingMethod: string;
+      /** Exact set of payment methods offered for canadaAddress. */
+      canadaPaymentMethods: string[];
+      onAccountPaymentMethod: string;
+      /** US territory: no UPS, only willContactShippingMethod (Will Contact). */
+      puertoRicoAddress: CustomerAddress;
+      /** Military APO/FPO: no UPS, only willContactShippingMethod. */
+      apoAddress: CustomerAddress;
+      /** Non-contiguous US states: no UPS, only willContactShippingMethod. */
+      alaskaAddress: CustomerAddress;
+      hawaiiAddress: CustomerAddress;
+      /**
+       * Documented blocked countries (admin-configurable) with their observed blocking mechanism:
+       * 'absent' = not offered in the country selector; 'checkout' = selectable, but checkout is blocked.
+       */
+      blockedCountries: Array<CustomerAddress & { blockedBy: 'absent' | 'checkout' }>;
+      /** Checkout error shown for a blocked destination. */
+      blockedShippingMessage: string;
+      wireTransferPaymentMethod: string;
+      /** International guest destination: Wire Transfer is offered. */
+      ukAddress: CustomerAddress;
+      /** Expected state of the B2C customer's invoiced (Sage) order — the order itself comes from env. */
+      invoicedOrder: { status: string };
+    };
   };
 
   /** Redirects that must work (checked for guests unless stated). */
@@ -144,6 +190,11 @@ export interface ResolvedConfig extends Omit<ProjectConfig, 'selectors'> {
       password?: string;
     };
     accessKey?: string;
+    /** Existing B2C customer for logged-in checks (ACT_B2C_EMAIL / ACT_B2C_PASSWORD). */
+    b2cCustomer?: { email: string; password: string };
+    /** Invoiced Done order of b2cCustomer and its invoice (ACT_INVOICED_ORDER_NUMBER / ACT_INVOICED_INVOICE_NUMBER). */
+    invoicedOrderNumber?: string;
+    invoicedInvoiceNumber?: string;
     allowWriteTests: boolean;
     cleanupTestData: boolean;
   };

@@ -38,17 +38,35 @@ export class CartPage extends BasePage {
   }
 
   async setQuantity(name: string, qty: number): Promise<void> {
-    const input = this.lineItem(name).locator(this.s.cart.quantityInput);
-    await this.waitForXhr('/checkout/line-item/change-quantity', async () => {
+  const input = this.lineItem(name).locator(this.s.cart.quantityInput);
+
+  await this.waitForXhr('/checkout/line-item/change-quantity', async () => {
+    const tagName = await input.evaluate((el) => el.tagName.toLowerCase());
+
+    if (tagName === 'select') {
+      await input.selectOption(String(qty));
+    } else {
       await input.fill(String(qty));
       await input.press('Enter');
-    });
-    await this.page.waitForLoadState('domcontentloaded');
-  }
+    }
+  });
+
+  await this.page.waitForLoadState('domcontentloaded');
+}
 
   async remove(name: string): Promise<void> {
     await this.waitForXhr('/checkout/line-item/delete', () => this.lineItem(name).locator(this.s.cart.remove).click());
     await this.page.waitForLoadState('domcontentloaded');
+  }
+
+  /** Removes every line item, e.g. cleanup for logged-in customers whose cart persists. */
+  async clear(): Promise<void> {
+    await this.open();
+    for (let i = 0; i < 50 && (await this.lineItems.count()) > 0; i++) {
+      await this.waitForXhr('/checkout/line-item/delete', () => this.lineItems.first().locator(this.s.cart.remove).click());
+      await this.page.waitForLoadState('domcontentloaded');
+    }
+    await this.expectEmpty();
   }
 
   async applyPromotion(code: string): Promise<void> {

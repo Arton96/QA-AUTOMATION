@@ -23,7 +23,8 @@ export class ListingPage extends BasePage {
   }
 
   async productNames(): Promise<string[]> {
-    return (await this.productBoxes.locator(this.s.listing.productName).allInnerTexts()).map((t) => t.trim());
+    // textContent: innerText is briefly empty while freshly swapped-in listing HTML renders
+    return (await this.productBoxes.locator(this.s.listing.productName).allTextContents()).map((t) => t.trim());
   }
 
   /** Current prices (ignores strike-through list prices). */
@@ -55,12 +56,6 @@ export class ListingPage extends BasePage {
     if (oldBox) await this.page.waitForFunction((el) => !el.isConnected, oldBox);
   }
 
-  /** Open filter dropdowns overlay the "reset all" button and the listing. */
-  private async closeFilterDropdowns(): Promise<void> {
-    const open = this.$(`${this.s.listing.filterItemToggle}[aria-expanded="true"]`).locator('visible=true');
-    for (const toggle of await open.all()) await toggle.click();
-  }
-
   async sortBy(key: string): Promise<void> {
     await this.reloadListing(() => this.sorting.selectOption(key));
     await expect(this.page).toHaveURL(new RegExp(`order=${key}`));
@@ -72,6 +67,8 @@ export class ListingPage extends BasePage {
     if (await panel.isVisible()) return panel;
     await this.$(this.s.listing.filterPanelToggle).locator('visible=true').first().click();
     await expect(panel).toBeVisible();
+    // mobile: the panel slides in as an off-canvas — wait for the animation to finish
+    await expect(panel).toBeInViewport({ ratio: 1 });
     return panel;
   }
 
@@ -86,28 +83,45 @@ export class ListingPage extends BasePage {
     return this.$(map[type]);
   }
 
+  /**
+   * Some themes render filter dropdowns expanded by default — only click the toggle when collapsed.
+   * Returns true if we opened it, so the caller can close it again.
+   */
+  private async expandFilter(filter: Locator): Promise<boolean> {
+    const toggle = filter.locator(this.s.listing.filterItemToggle).first();
+    if ((await toggle.getAttribute('aria-expanded')) === 'true') return false;
+    await toggle.click();
+    return true;
+  }
+
+  /** Open dropdowns overlay the "reset all" button and the listing — close only the one we opened. */
+  private async collapseFilter(filter: Locator, opened: boolean): Promise<void> {
+    const toggle = filter.locator(this.s.listing.filterItemToggle).first();
+    if (opened && (await toggle.getAttribute('aria-expanded')) === 'true') await toggle.click();
+  }
+
   /** Opens a multi-select filter dropdown and ticks its n-th option. Returns the option label. */
   async applyMultiSelectFilter(filter: Locator, optionIndex = 0): Promise<string> {
     await this.ensureFilterPanelVisible();
     const target = filter.locator('visible=true').first();
-    await target.locator(this.s.listing.filterItemToggle).first().click();
+    const opened = await this.expandFilter(target);
     const option = target.locator(this.s.listing.filterOption).nth(optionIndex);
     const label = (await option.innerText()).trim();
     await this.reloadListing(() => option.locator('input').check({ force: true }));
-    await this.closeFilterDropdowns();
+    await this.collapseFilter(target, opened);
     return label;
   }
 
   async applyPriceFilter(min?: number, max?: number): Promise<void> {
     await this.ensureFilterPanelVisible();
     const price = this.$(this.s.listing.filterPrice).locator('visible=true').first();
-    await price.locator(this.s.listing.filterItemToggle).first().click();
+    const opened = await this.expandFilter(price);
     await this.reloadListing(async () => {
       if (min !== undefined) await price.locator('input[name="min-price"]').fill(String(min));
       if (max !== undefined) await price.locator('input[name="max-price"]').fill(String(max));
       await price.locator('input[name="max-price"]').press('Tab');
     });
-    await this.closeFilterDropdowns();
+    await this.collapseFilter(price, opened);
   }
 
   get activeFilters(): Locator {
@@ -115,7 +129,6 @@ export class ListingPage extends BasePage {
   }
 
   async resetAllFilters(): Promise<void> {
-    await this.closeFilterDropdowns();
     await this.reloadListing(() =>
       this.$(this.s.listing.resetAllFilters).locator('visible=true').first().click(),
     );

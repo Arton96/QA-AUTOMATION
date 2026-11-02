@@ -1,5 +1,5 @@
 import { expect, type Locator } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { BasePage, escapeRegExp } from './BasePage';
 
 export class AccountPage extends BasePage {
   get asideItems(): Locator {
@@ -37,6 +37,35 @@ export class AccountPage extends BasePage {
 
   get orders(): Locator {
     return this.$(this.s.account.orderItem);
+  }
+
+  /** Filters the order overview via its search (no-op when the project has no order search). */
+  async searchOrders(term: string): Promise<void> {
+    if (!this.s.account.orderSearchInput) return;
+    await this.$(this.s.account.orderSearchInput).fill(term);
+    // exact URL: third-party beacons (e.g. New Relic) carry /account/order in their query string
+    const url = new RegExp(`^${escapeRegExp(this.cfg.baseURL + this.cfg.routes.accountOrders)}(\\?.*)?$`);
+    await this.waitForXhr(url, () => this.$(this.s.account.orderSearchSubmit).first().click());
+    await expect(this.$(this.s.account.orderList).first()).not.toHaveClass(/has-element-loader/);
+  }
+
+  orderStatus(orderNumber: string): Locator {
+    return this.orderRow(orderNumber).locator(this.s.account.orderStatus).first();
+  }
+
+  orderRow(orderNumber: string): Locator {
+    return this.orders.filter({ hasText: orderNumber }).first();
+  }
+
+  /** Expands the order's detail section (read-only collapse toggle). */
+  async openOrderDetails(orderNumber: string): Promise<void> {
+    const toggle = this.orderRow(orderNumber).locator(this.s.account.orderDetailToggle).first();
+    if ((await toggle.count()) && (await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click();
+  }
+
+  /** Cancel controls of the order (inside its row incl. context menu). Never click — inspect only. */
+  orderCancelControls(orderNumber: string): Locator {
+    return this.orderRow(orderNumber).locator(this.s.account.orderCancel);
   }
 
   get successAlert(): Locator {

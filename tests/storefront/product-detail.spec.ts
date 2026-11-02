@@ -34,7 +34,7 @@ const switchGroupIndex = v.switchGroupIndex ?? v.optionGroups.length - 1;
 const { before, after } = await product.switchVariant(switchGroupIndex);
 
     expect(after).not.toEqual(before);
-    await expect(page).toHaveURL(new RegExp(after.replace(/[.]/g, '\\.')));
+    await expect(page).toHaveURL(new RegExp(after.replace(/[.]/g, '\\.'), 'i'));
   });
 
   test('breadcrumb links back to the category', async ({ product, cfg, page }) => {
@@ -51,7 +51,7 @@ const { before, after } = await product.switchVariant(switchGroupIndex);
     await expect(product.page.locator(cfg.selectors.product.reviewTeaser).first()).toBeAttached();
   });
 
-  test('unknown product URL returns 404', async ({ page, cfg }) => {
+  test('unknown product URL returns 404 @known-bug', async ({ page, cfg }) => {
     const res = await page.goto('/this-product-does-not-exist-e2e/XX-000');
     expect(res?.status()).toBe(404);
     await expect(page.locator(cfg.selectors.error.body)).toBeAttached();

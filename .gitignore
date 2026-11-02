@@ -9,3 +9,8 @@ playwright/.cache/
 .auth/
 *.log
 .DS_Store
+
+# AT-242 generated QA artefacts (reports, evidence screenshots, quote pool)
+reports/
+test-data/quote-pool.json
+test-data/quote-pool.json.*

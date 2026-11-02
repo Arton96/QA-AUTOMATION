@@ -37,9 +37,35 @@ export class OffcanvasCart extends BasePage {
   }
 
   async increaseQuantity(name: string): Promise<void> {
-    await this.waitUntilReady(name);
-    await this.waitForXhr('/checkout/offcanvas', () => this.lineItem(name).locator(this.s.offcanvasCart.plus).click());
+  await this.waitUntilReady(name);
+
+  const item = this.lineItem(name);
+  const quantityInput = item
+    .locator(this.s.offcanvasCart.quantityInput)
+    .first();
+
+  const before = Number(await quantityInput.inputValue());
+  const next = before + 1;
+
+  const plusButton = item.locator(this.s.offcanvasCart.plus);
+
+  if (await plusButton.count()) {
+    await plusButton.click();
+  } else {
+    await quantityInput.selectOption(String(next));
   }
+
+  await expect.poll(
+    async () =>
+      Number(
+        await this.lineItem(name)
+          .locator(this.s.offcanvasCart.quantityInput)
+          .first()
+          .inputValue()
+      ),
+    { timeout: 15_000 }
+  ).toBe(next);
+}
 
   async remove(name: string): Promise<void> {
     await this.waitUntilReady(name);

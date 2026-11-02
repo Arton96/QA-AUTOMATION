@@ -1,5 +1,5 @@
 import { expect, type Locator } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { BasePage, escapeRegExp } from './BasePage';
 import type { TestCustomer } from '../data/customer';
 
 /**
@@ -17,6 +17,11 @@ export class AuthPage extends BasePage {
   async open(): Promise<void> {
     await this.goto(this.cfg.routes.login);
     await expect(this.loginForm).toBeVisible();
+  }
+
+  async openRegistration(): Promise<void> {
+    await this.goto(this.cfg.routes.register);
+    await expect(this.registerForm).toBeVisible();
   }
 
   // ---------------- login ----------------
@@ -64,20 +69,43 @@ export class AuthPage extends BasePage {
     await form.locator(r.street).fill(c.address.street);
     await form.locator(r.zipcode).fill(c.address.zipcode);
     await form.locator(r.city).fill(c.address.city);
+    const phone = form.locator(r.phone);
+    if (c.address.phone && (await phone.isVisible())) await phone.fill(c.address.phone);
     await this.selectCountry(form.locator(r.country).first(), c.address.countryLabel);
+    // state options are (re)loaded by selectCountry's XHR
+    if (c.address.stateLabel) await form.locator(r.countryState).first().selectOption({ label: c.address.stateLabel });
 
     const dp = form.locator(r.dataProtection);
-    if (await dp.count()) await dp.check({ force: true });
+    if (await dp.count()) {
+      // the click can be lost while the form is still re-rendering → retry until it sticks
+      await expect(async () => {
+        if (!(await dp.isChecked())) await dp.check({ force: true });
+        await expect(dp).toBeChecked({ timeout: 1_000 });
+      }).toPass({ timeout: 15_000 });
+    }
+  }
+
+  /** Option texts of the registration country select (incl. the placeholder). */
+  async countryOptions(): Promise<string[]> {
+    const texts = await this.registerForm.locator(this.s.register.country).first().locator('option').allTextContents();
+    return texts.map((t) => t.trim());
   }
 
   private async selectCountry(select: Locator, label?: string): Promise<void> {
     if (!label || !(await select.isVisible())) return;
-    const re = new RegExp(label, 'i');
+    // escaped: labels like "Venezuela (Bolivarian Republic of)" contain regex characters
+    const re = new RegExp(escapeRegExp(label), 'i');
     const values = await select.locator('option').evaluateAll((opts, src) => {
       const rx = new RegExp(src, 'i');
       return opts.filter((o) => rx.test(o.textContent ?? '')).map((o) => (o as HTMLOptionElement).value);
     }, re.source);
-    if (values[0]) await select.selectOption(values[0]);
+    if (!values[0]) return;
+    // Shopware's country-state plugin reloads the state select via XHR on change; submitting
+    // before it finishes leaves a stale required state field that blocks the form.
+    await Promise.all([
+      this.page.waitForResponse(/\/country\/country-state-data/, { timeout: 10_000 }).catch(() => null),
+      select.selectOption(values[0]),
+    ]);
   }
 
   async submitRegistration(): Promise<void> {

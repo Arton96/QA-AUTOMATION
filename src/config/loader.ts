@@ -61,6 +61,12 @@ export function loadConfig(): ResolvedConfig {
         password: str(process.env.ADMIN_PASSWORD),
       },
       accessKey: str(process.env.SW_ACCESS_KEY),
+      b2cCustomer:
+        str(process.env.ACT_B2C_EMAIL) && str(process.env.ACT_B2C_PASSWORD)
+          ? { email: str(process.env.ACT_B2C_EMAIL)!, password: str(process.env.ACT_B2C_PASSWORD)! }
+          : undefined,
+      invoicedOrderNumber: str(process.env.ACT_INVOICED_ORDER_NUMBER),
+      invoicedInvoiceNumber: str(process.env.ACT_INVOICED_INVOICE_NUMBER),
       allowWriteTests: bool(process.env.ALLOW_WRITE_TESTS, true),
       cleanupTestData: bool(process.env.CLEANUP_TEST_DATA, true),
     },

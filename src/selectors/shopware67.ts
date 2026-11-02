@@ -165,6 +165,7 @@ export const shopware67Selectors = {
     street: '[name="billingAddress[street]"]',
     zipcode: '[name="billingAddress[zipcode]"]',
     city: '[name="billingAddress[city]"]',
+    phone: '[name="billingAddress[phoneNumber]"]',
     country: '[name="billingAddress[countryId]"]',
     countryState: '[name="billingAddress[countryStateId]"]',
     differentShipping: '.js-different-shipping-checkbox',
@@ -182,6 +183,15 @@ export const shopware67Selectors = {
     addressCard: '.address-card, .address-box',
     addAddressButton: 'a[href*="/account/address/create"]',
     orderItem: '.order-table, .order-wrapper, .account-order-overview .order-item',
+    /** Shopware core order list markup (expand toggle / status badge / cancel form) */
+    orderDetailToggle: '.order-hide-btn',
+    orderStatus: '.order-item-status-badge',
+    /** Order search of the order overview — not core, set per project. */
+    orderSearchInput: '',
+    orderSearchSubmit: '',
+    /** Container replaced by the order search (carries .has-element-loader while loading). */
+    orderList: '',
+    orderCancel: 'form[action*="/account/order/cancel"] [type="submit"], [data-bs-target*="cancel" i]',
     logout: 'a[href$="/account/logout"]',
   },
   checkout: {
@@ -190,12 +200,19 @@ export const shopware67Selectors = {
     submitOrder: '#confirmFormSubmit',
     paymentMethod: '.payment-method-input',
     paymentMethodLabel: '.payment-method-label',
+    /** method name inside the label (label also holds description / logos) */
+    paymentMethodName: '.payment-method-description strong',
     shippingMethod: '.shipping-method-input',
     shippingMethodLabel: '.shipping-method-label',
+    shippingMethodName: '.shipping-method-description strong',
     address: '.confirm-address',
     lineItem: '.line-item-product',
     finishHeader: '.finish-header',
     finishOrderNumber: '.finish-ordernumber',
+    /** Saved-card / stored-payment UI of a payment plugin — not core, set per project. */
+    savedPaymentMethod: '',
+    /** Visible once a payment plugin's embedded form has initialised — not core, set per project. */
+    paymentFormReady: '',
   },
   contact: {
     form: 'form[action$="/form/contact"]',
@@ -206,6 +223,7 @@ export const shopware67Selectors = {
     phone: '[name="phone"]',
     subject: '[name="subject"]',
     comment: '[name="comment"]',
+    dataProtection: '[name="acceptedDataProtection"]',
     submit: 'button[type="submit"]',
     success: '.confirm-message, .alert-success',
   },
@@ -223,6 +241,23 @@ export const shopware67Selectors = {
     page: '.cms-listing-row, .wishlist-listing',
     productBox: '.product-box',
     remove: '.product-wishlist-remove, .product-wishlist-action',
+  },
+  /** Customer "product lists" (My Lists) — not part of core Shopware, so no defaults; set per project. */
+  productLists: {
+    saveButton: '',
+    modal: '',
+    newListName: '',
+    submit: '',
+    success: '',
+    overview: '',
+    listCard: '',
+    listCardName: '',
+    detail: '',
+    detailTitle: '',
+    item: '',
+    itemName: '',
+    deleteTrigger: '',
+    deleteConfirm: '',
   },
 };
 
